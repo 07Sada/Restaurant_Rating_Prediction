@@ -18,7 +18,7 @@ class RatingException(Exception):
     # the class has constructor that takes in an error message and error details
     def __init__(self, error_message, error_detail:sys):
         # call the error_message_detail function to format the error message
-        self.error_message = error_message_detail(error=error_message, error_detail=error_detail)
+        self.error_message = error_message_detail(error_message, error_detail)
 
     # __str__ menthod that return the error message
     def __str__(self):
