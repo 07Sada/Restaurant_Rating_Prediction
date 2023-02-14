@@ -165,10 +165,6 @@ class DataValidation:
         try:
             logging.info(f"Reading the dataframe")
             base_df = pd.read_csv(self.data_validation_config.base_file_path)
-            
-            logging.info(f"Dropping the null values colums from the base_df")
-            base_df = pd.read_csv(self.data_validation_config.base_file_path)
-            base_df = self.drop_missing_values(base_df, report_key_name="missing_values_within_base_dataset")
 
             logging.info(f"Reading the train dataframe")
             train_df = pd.read_csv(self.data_ingestion_artifact.train_file_path)
