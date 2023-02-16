@@ -25,7 +25,7 @@ class DataIngestion:
             
             df:pd.DataFrame = utils.get_collection_as_dataframe(database_name=self.data_ingestion_config.database_name, 
                                                                 collection_name=self.data_ingestion_config.collection_name)
-
+            logging.info(f"Columns in base_df: [{df.columns}]")
             # saving data to feature store 
             # creating feature store directory
             logging.info(f"Creating feature store folder if not exists")
@@ -39,7 +39,7 @@ class DataIngestion:
             logging.info(f"Splitting the dataset into train and test set")
             # splitting the dataset
             train_df, test_df = train_test_split(df, test_size=self.data_ingestion_config.test_size, random_state=42)
-
+            logging.info(f"columns in train dataset,[{train_df.columns}]")
             logging.info("Creating the dataset Directory if not available")
             dataset_dir = os.path.dirname(self.data_ingestion_config.test_file_name)
             os.makedirs(dataset_dir, exist_ok=True)

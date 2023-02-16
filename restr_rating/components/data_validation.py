@@ -59,10 +59,10 @@ class DataValidation:
     def remove_extra_columns(self, df:pd.DataFrame, extra_column_name:List)->pd.DataFrame:
 
         try:
-            logging.info(f"column available in dataset: {df.columns}")
             for i in extra_column_name:
                 if i in df.columns:
                     df.drop(i,axis=1,inplace=True)
+                    logging.info(f"extra column {i} dropped")
             return df
         
         except Exception as e:
@@ -189,10 +189,14 @@ class DataValidation:
             test_df = self.remove_duplicate_rows(df=test_df, report_key_name="duplicate_rows_within_test_dataframe")
 
             logging.info(f"removing rows with null values in train dataframe")
+            logging.info(f"Shape of the train dataframe: [{train_df.shape}]")
             train_df = self.removig_rows_with_missing_values(df=train_df, report_key_name="rows_with_missing_values_within_train_dataframe")
+            logging.info(f"Shape of the train dataframe: [{train_df.shape}]")
+            logging.info(f"Shape of the test dataframe: [{test_df.shape}]")
             logging.info(f"removing rows with null values in test dataframe")
             test_df = self.removig_rows_with_missing_values(df=test_df, report_key_name="rows_with_missing_values_within_test_dataframe")
-
+            logging.info(f"Shape of the test dataframe: [{test_df.shape}]")
+            
             logging.info(f"Checking if all required columns are present in train df")
             train_df_column_stats = self.is_required_column_exist(base_df=base_df, current_df=train_df, report_key_name="missing_columns_within_train_dataset")
             logging.info(f"Checking if all required columns are present in test df")

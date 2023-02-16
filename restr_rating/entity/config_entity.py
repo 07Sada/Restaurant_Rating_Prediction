@@ -9,6 +9,10 @@ from restr_rating.logger import logging
 FILE_NAME ='ratings.csv'
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
+MODEL_FILE_NAME = 'model.pkl'
+TRANSFORMER_OBJECT_FILE_NAME = 'transformer.pkl'
+TARGET_ENCODER_OBJECT_FILE_NAME = 'target_encoder.pkl'
+
 
 # Class to store the configuration for the training pipeline
 class TrainingPipelineConfig:
@@ -64,3 +68,9 @@ class DataValidationConfig:
         self.missing_threshold:float =0.2
         self.base_file_path = os.path.join("/config/workspace/zomato_cleaned.csv")
         
+class DataTransformationConfig:
+    def __init__(self, training_pipeline_config:TrainingPipelineConfig):
+        self.data_transformation_dir = os.path.join(training_pipeline_config.artifact_dir, "data_transformation")
+        self.transformed_train_path = os.path.join(self.data_transformation_dir,"transformed",TRAIN_FILE_NAME.replace("csv", "npz"))
+        self.transformed_test_path = os.path.join(self.data_transformation_dir,"transformed",TEST_FILE_NAME.replace("csv", "npz"))
+    

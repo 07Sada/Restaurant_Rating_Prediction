@@ -6,7 +6,7 @@ import json
 from restr_rating.config import mongo_client
 
 # Define the path to the data file
-DATA_FILE_PATH = "/config/workspace/zomato.csv"
+DATA_FILE_PATH = "/config/workspace/zomato_cleaned.csv"
 
 # Define the name of the database and collection to use
 DATABASE_NAME = 'restr_ratings'

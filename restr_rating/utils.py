@@ -21,7 +21,7 @@ def get_collection_as_dataframe(database_name:str, collection_name:str)->pd.Data
         logging.info(f"Reading data from database :[{database_name}] and collection : [{collection_name}]")
 
         # Creating a Pandas dataframe from the MongoDB data
-        df:pd.DataFrame = pd.DataFrame(list(mongo_client[database_name][collection_name].find()))
+        df:pd.DataFrame = pd.DataFrame(list(mongo_client[database_name][collection_name].find({}, {"_id": 0, "Unnamed: 0": 0})))
         logging.info(f"Data Loaded Successfully to pandas dataframe, size of the data: [{df.shape}]")
 
         # Removing the "_id" column from the dataframe
@@ -43,5 +43,48 @@ def write_yaml_file(file_path:str, data:dict):
         # open file in write mode
         with open(file_path,'w') as file_writer:
             yaml.dump(data, file_writer)
+    except Exception as e:
+        raise RatingException(e, sys)
+
+def filter_and_clean(df:pd.DataFrame):
+    try:
+        df = df.loc[df.rate != 'NEW']
+        df = df.loc[df.rate != '-'].reset_index(drop=True)
+        df['rate'] = df['rate'].replace(r'[^\S]|/5', '', regex=True).replace(r'-|NEW|nan',np.nan, regex=True).astype(float)
+        return df
+    except Exception as e:
+        raise RatingException(e, sys)
+
+def clean_cost_column(df:pd.DataFrame):
+    try:
+        df['cost'] = df['cost'].str.replace(',', '').astype('int32')
+        return df['cost']
+    except Exception as e:
+        raise RatingException(e, sys)
+
+def save_numpy_array_data(file_path:str, df:pd.DataFrame):
+    """
+    Save Pandas DataFrame data as a NumPy array to file
+    file_path: str location of file to save
+    df: pd.DataFrame data to save
+    """
+    try:
+        dir_path = os.path.dirname(file_path)
+        os.makedirs(dir_path, exist_ok=True)
+        array = df.to_numpy()  # Convert DataFrame to NumPy array
+        with open(file_path, "wb") as file_obj:
+            np.save(file_obj, array)
+    except Exception as e:
+        raise RatingException(e, sys)
+
+def load_numpy_array(file_path:str)->np.array:
+    """
+    load numpy array data from file 
+    file_path: str location of file to load
+    return np.array data loaded
+    """
+    try:
+        with open(file_path,"rb") as file_obj:
+            return np.load(file_obj)
     except Exception as e:
         raise RatingException(e, sys)
