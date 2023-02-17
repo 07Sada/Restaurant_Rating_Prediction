@@ -23,7 +23,7 @@ class DataTransformation:
         except Exception as e:
             raise RatingException(e, sys)
 
-    def Encode(df):
+    def Encode(df:pd.DataFrame):
     # Initialize the LabelEncoder object
         le = LabelEncoder()
         
