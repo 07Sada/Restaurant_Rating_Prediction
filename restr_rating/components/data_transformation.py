@@ -23,28 +23,39 @@ class DataTransformation:
         except Exception as e:
             raise RatingException(e, sys)
 
-    def Encode(df:pd.DataFrame):
-    # Initialize the LabelEncoder object
-        le = LabelEncoder()
-        
-        # Iterate through columns in the DataFrame
-        for column in df.columns[~df.columns.isin(ENCODE_EXCLUDE_COLUMN)]:
-            # Fit and transform the categorical column using LabelEncoder
-            df[column] = le.fit_transform(df[column])
-        # Return the encoded DataFrame
-        return df
+            
+    @classmethod
+    def get_data_transformer_object(cls)->Pipeline:
+        try: 
+            pipeline = Pipeline([('encoder', LabelEncoder())])
+            return pipeline 
+        except Exception as e:
+            raise RatingException(e, sys)
+                
 
     def initiate_data_transformation(self)->artifact_entity.DataTransformationArtifact:
         try: 
             # reading the training and testing files
             logging.info("Reading train and test files in data_transformation.py")
-            train_df = pd.read_csv(self.data_ingestion_artifact.train_file_path)
-            test_df = pd.read_csv(self.data_ingestion_artifact.test_file_path)
+            test_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000))
+            # test_df = pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000)
+            train_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.train_file_path, chunksize = 5000))
+            logging.info(f"train and test file read")
+            
+            # selecting input feature for encoding
+            en_train_df = train_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
+            en_test_df = test_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
 
-            # transforming training and testing dataset
-            logging.info(f"Transforming train and test dataframes")
-            transformed_train_path = self.Encode(train_df)
-            transformed_test_path = self.Encode(test_df)
+            label_encoding = LabelEncoder()
+            label_encoding.fit(en_train_df)
+            label_encoding.fit(en_test_df)
+            logging.info(f"Label Encoding done for train and test dataframe")
+
+            # # transforming training and testing dataset
+            # logging.info(f"Transforming train and test dataframes")
+            # transformed_train_path = self.Encode(train_df)
+            # transformed_test_path = self.Encode(test_df)
+            # logging.info(f"Encoding Completed")
 
             # saving into numpy array
             logging.info(f"Saving the transformed dataframe into numpy array")
