@@ -23,14 +23,18 @@ class DataTransformation:
         except Exception as e:
             raise RatingException(e, sys)
 
-            
-    @classmethod
-    def get_data_transformer_object(cls)->Pipeline:
-        try: 
-            pipeline = Pipeline([('encoder', LabelEncoder())])
-            return pipeline 
-        except Exception as e:
-            raise RatingException(e, sys)
+    def Encode (self, df:pd.DataFrame):
+    # Initialize the LabelEncoder object
+        le = LabelEncoder()
+
+        # Iterate through columns in the DataFrame
+        for column in df.columns[~df.columns.isin(ENCODE_EXCLUDE_COLUMN)]:
+            # Fit and transform the categorical column using LabelEncoder
+            le.fit(df[column])
+            df[column] = le.transform(df[column])
+        # Return the encoded DataFrame
+        return df
+
                 
 
     def initiate_data_transformation(self)->artifact_entity.DataTransformationArtifact:
@@ -38,34 +42,30 @@ class DataTransformation:
             # reading the training and testing files
             logging.info("Reading train and test files in data_transformation.py")
             test_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000))
-            # test_df = pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000)
             train_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.train_file_path, chunksize = 5000))
             logging.info(f"train and test file read")
             
             # selecting input feature for encoding
             en_train_df = train_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             en_test_df = test_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
+            
+            train_encode = self.Encode(df=en_train_df)
+            test_encode = self.Encode(df=en_test_df)
 
-            label_encoding = LabelEncoder()
-            label_encoding.fit(en_train_df)
-            label_encoding.fit(en_test_df)
-            logging.info(f"Label Encoding done for train and test dataframe")
-
-            # # transforming training and testing dataset
-            # logging.info(f"Transforming train and test dataframes")
-            # transformed_train_path = self.Encode(train_df)
-            # transformed_test_path = self.Encode(test_df)
-            # logging.info(f"Encoding Completed")
+            train_df = pd.concat([train_df[ENCODE_EXCLUDE_COLUMN], train_encode], axis=1)
+            test_df = pd.concat([test_df[ENCODE_EXCLUDE_COLUMN], test_encode], axis=1)
 
             # saving into numpy array
             logging.info(f"Saving the transformed dataframe into numpy array")
-            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_train_path, df=transformed_train_path)
-            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_test_path, df=transformed_test_path)
+            logging.info(f"file path: {self.data_transformation_config.transformed_train_path}")
+            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_train_path, df=train_df)
+            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_test_path, df=test_df)
 
             # creating the artifacts
             data_transformation_artifact = artifact_entity.DataTransformationArtifact(
                                             transformed_train_path= self.data_transformation_config.transformed_train_path, 
-                                            transformed_test_path = self.data_transformation_config.transformed_test_path)
+                                            transformed_test_path = self.data_transformation_config.transformed_test_path,
+                                            )
             
             logging.info(f"Data Transformation Done")
             return data_transformation_artifact
