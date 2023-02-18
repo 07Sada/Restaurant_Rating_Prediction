@@ -14,3 +14,9 @@ class DataValidationArtifact:
 class DataTransformationArtifact:
     transformed_train_path:str 
     transformed_test_path:str 
+
+@dataclass
+class ModelTrainerArtifact:
+    model_path:str 
+    r2_train_score:float 
+    r2_test_score:float

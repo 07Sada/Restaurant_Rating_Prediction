@@ -17,8 +17,9 @@ env_var = EnvironmentVariable()
 
 mongo_client = pymongo.MongoClient(env_var.mongodb_url)
 
-EXTRA_COLUMNS = ['url','phone','dish_liked']
+EXTRA_COLUMNS = ['url','phone','dish_liked', 'address', 'reviews_list']
 
 TARGET_COLUMN ="rate"
 
-ENCODE_EXCLUDE_COLUMN = ['rate', 'cost', 'votes']
+ENCODE_EXCLUDE_COLUMN = ['rate', 'cost', 'votes',]
+

@@ -23,17 +23,21 @@ class DataTransformation:
         except Exception as e:
             raise RatingException(e, sys)
 
-    def Encode (self, df:pd.DataFrame):
-    # Initialize the LabelEncoder object
-        le = LabelEncoder()
 
-        # Iterate through columns in the DataFrame
-        for column in df.columns[~df.columns.isin(ENCODE_EXCLUDE_COLUMN)]:
-            # Fit and transform the categorical column using LabelEncoder
-            le.fit(df[column])
-            df[column] = le.transform(df[column])
-        # Return the encoded DataFrame
-        return df
+    def encode_categorical_variables(self, base: pd.DataFrame, train_df: pd.DataFrame, test_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    # fit .factorize() method on base_df
+        unique_values = {}
+        for column in base.columns:
+            unique_values[column] = base[column].unique()
+
+        # transform categorical variables in train_df and test_df using unique values
+        for column in train_df.columns:
+            if train_df[column].dtype == 'object':
+                train_df[column] = pd.Categorical(train_df[column], categories=unique_values[column]).codes
+            if test_df[column].dtype == 'object':
+                test_df[column] = pd.Categorical(test_df[column], categories=unique_values[column]).codes
+
+        return train_df, test_df
 
                 
 
@@ -41,25 +45,26 @@ class DataTransformation:
         try: 
             # reading the training and testing files
             logging.info("Reading train and test files in data_transformation.py")
-            test_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000))
-            train_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.train_file_path, chunksize = 5000))
+            base_df = pd.concat(pd.read_csv('/config/workspace/zomato_cleaned.csv', chunksize = 5000)).drop(['address', 'reviews_list'], axis=1)
+            test_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.test_file_path, chunksize = 5000)).drop(['address', 'reviews_list'], axis=1)
+            train_df = pd.concat(pd.read_csv(self.data_ingestion_artifact.train_file_path, chunksize = 5000)).drop(['address', 'reviews_list'], axis=1)
             logging.info(f"train and test file read")
             
             # selecting input feature for encoding
             en_train_df = train_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             en_test_df = test_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             
-            train_encode = self.Encode(df=en_train_df)
-            test_encode = self.Encode(df=en_test_df)
+            train_encode, test_encode = self.encode_categorical_variables(base=base_df, train_df=en_train_df, test_df=en_test_df)
+             
 
-            train_df = pd.concat([train_df[ENCODE_EXCLUDE_COLUMN], train_encode], axis=1)
-            test_df = pd.concat([test_df[ENCODE_EXCLUDE_COLUMN], test_encode], axis=1)
+            train_df_encoded = pd.concat([train_df[ENCODE_EXCLUDE_COLUMN], train_encode], axis=1)
+            test_df_encoded = pd.concat([test_df[ENCODE_EXCLUDE_COLUMN], test_encode], axis=1)
 
             # saving into numpy array
             logging.info(f"Saving the transformed dataframe into numpy array")
             logging.info(f"file path: {self.data_transformation_config.transformed_train_path}")
-            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_train_path, df=train_df)
-            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_test_path, df=test_df)
+            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_train_path, df=train_df_encoded)
+            utils.save_numpy_array_data(file_path=self.data_transformation_config.transformed_test_path, df=test_df_encoded)
 
             # creating the artifacts
             data_transformation_artifact = artifact_entity.DataTransformationArtifact(
