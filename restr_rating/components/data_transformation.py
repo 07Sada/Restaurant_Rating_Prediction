@@ -10,6 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder 
 from restr_rating import utils
 from restr_rating.config import TARGET_COLUMN, ENCODE_EXCLUDE_COLUMN
+import dill
 
 class DataTransformation:
     
@@ -24,20 +25,27 @@ class DataTransformation:
             raise RatingException(e, sys)
 
 
-    def encode_categorical_variables(self, base: pd.DataFrame, train_df: pd.DataFrame, test_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    def encode_categorical_variables(self, base: pd.DataFrame, train_df: pd.DataFrame, test_df: pd.DataFrame, file_path: str) -> (pd.DataFrame, pd.DataFrame, dill):
     # fit .factorize() method on base_df
-        unique_values = {}
-        for column in base.columns:
-            unique_values[column] = base[column].unique()
+        try:
+            unique_values = {}
+            for column in base.columns:
+                unique_values[column] = base[column].unique()
 
-        # transform categorical variables in train_df and test_df using unique values
-        for column in train_df.columns:
-            if train_df[column].dtype == 'object':
-                train_df[column] = pd.Categorical(train_df[column], categories=unique_values[column]).codes
-            if test_df[column].dtype == 'object':
-                test_df[column] = pd.Categorical(test_df[column], categories=unique_values[column]).codes
+            # transform categorical variables in train_df and test_df using unique values
+            for column in train_df.columns:
+                if train_df[column].dtype == 'object':
+                    train_df[column] = pd.Categorical(train_df[column], categories=unique_values[column]).codes
+                if test_df[column].dtype == 'object':
+                    test_df[column] = pd.Categorical(test_df[column], categories=unique_values[column]).codes
+                else:
+                    encoded_base[column] = base_df[column]
 
-        return train_df, test_df
+            utils.save_encoding_to_dill(unique_values=unique_values, encoded_base=base, file_path=file_path)
+            return train_df, test_df
+        
+        except Exception as e:
+            raise RatingException(e, sys)
 
                 
 
@@ -54,7 +62,7 @@ class DataTransformation:
             en_train_df = train_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             en_test_df = test_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             
-            train_encode, test_encode = self.encode_categorical_variables(base=base_df, train_df=en_train_df, test_df=en_test_df)
+            train_encode, test_encode = self.encode_categorical_variables(base=base_df, train_df=en_train_df, test_df=en_test_df,file_path=self.data_transformation_config.transform_object_path)
              
 
             train_df_encoded = pd.concat([train_df[ENCODE_EXCLUDE_COLUMN], train_encode], axis=1)
@@ -68,6 +76,7 @@ class DataTransformation:
 
             # creating the artifacts
             data_transformation_artifact = artifact_entity.DataTransformationArtifact(
+                                            transform_object_path = self.data_transformation_config.transform_object_path,
                                             transformed_train_path= self.data_transformation_config.transformed_train_path, 
                                             transformed_test_path = self.data_transformation_config.transformed_test_path,
                                             )

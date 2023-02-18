@@ -98,3 +98,13 @@ def save_object(file_path:str, obj:object)->None:
         logging.info(f"Exited the save_object method of utils")
     except Exception as e:
         raise RatingException(e, sys)
+
+
+def save_encoding_to_dill(unique_values: dict, encoded_base: pd.DataFrame, file_path: str):
+    try:
+        logging.info(f"Entered the save object method of utils")
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'wb') as file:
+            dill.dump({'unique_values': unique_values, 'encoded_base': encoded_base}, file)
+    except Exception as e:
+        raise RatingException(e, sys)
