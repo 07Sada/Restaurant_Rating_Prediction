@@ -8,7 +8,10 @@ def error_message_detail(error, error_detail:sys):
     _, _, exc_tb = error_detail.exc_info() # extract the information about the error 
     file_name = exc_tb.tb_frame.f_code.co_filename #get the file name where the error ocurred
     # formating the error msg
-    error_message = f"Error Occured python script name {file_name} line number {exc_tb.tb_lineno} error message {str(error)}"
+    error_message = "Error occurred python script name [{0}] line number [{1}] error message [{2}]".format(
+        file_name, exc_tb.tb_lineno, str(error)
+    )
+    # error_message = f"Error Occured python script name {file_name} line number {exc_tb.tb_lineno} error message {str(error)}"
     return error_message
 
 

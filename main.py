@@ -6,6 +6,8 @@ from restr_rating.entity import config_entity, artifact_entity
 from restr_rating.components.data_validation import DataValidation
 from restr_rating.components.data_transformation import DataTransformation
 from restr_rating.components.model_trainer import ModelTrainer
+from restr_rating.components.model_evaluation import ModelEvaluation
+from restr_rating.components.mode_pusher import ModelPusher
 import os
 import sys
 import traceback
@@ -35,6 +37,23 @@ if __name__ =="__main__":
           model_trainer_config = config_entity.ModelTrainerConfig(training_pipeline_config=training_pipeline_config)
           model_trainer = ModelTrainer(model_trainer_config=model_trainer_config, data_transformation_artifact=data_transformation_artifact)
           model_trainer_artifact = model_trainer.initiate_model_trainer()
+
+          # model Evaluation 
+          model_evaluation_config = config_entity.ModelEvaluationConfig(training_pipeline_config=training_pipeline_config)
+          model_eval = ModelEvaluation(
+               model_eval_config = model_evaluation_config, 
+               data_ingestion_artifact =data_ingestion_artifact, 
+               data_transformation_artifact = data_transformation_artifact, 
+               model_trainer_artifact= model_trainer_artifact)
+          model_eval_artifact = model_eval.initiate_model_evaluation()
+
+          # model Pusher 
+          model_pusher_config = config_entity.ModelPusherConfig(training_pipeline_config=training_pipeline_config)
+          model_pusher = ModelPusher(model_pusher_config = model_pusher_config, 
+          data_transformation_artifact = data_transformation_artifact, 
+          model_trainer_artifact=model_trainer_artifact)
+
+          model_pusher_artifact = model_pusher.initiate_model_pusher()
 
      except Exception as e:
           raise RatingException(e,  sys)

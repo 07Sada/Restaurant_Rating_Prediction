@@ -29,6 +29,7 @@ class DataTransformation:
     # fit .factorize() method on base_df
         try:
             unique_values = {}
+            encoded_base = pd.DataFrame()
             for column in base.columns:
                 unique_values[column] = base[column].unique()
 
@@ -41,7 +42,7 @@ class DataTransformation:
                 else:
                     encoded_base[column] = base_df[column]
 
-            utils.save_encoding_to_dill(unique_values=unique_values, encoded_base=base, file_path=file_path)
+            # utils.save_encoding_to_dill(unique_values=unique_values, encoded_base=base, file_path=file_path)
             return train_df, test_df
         
         except Exception as e:
@@ -63,10 +64,11 @@ class DataTransformation:
             en_test_df = test_df.drop(ENCODE_EXCLUDE_COLUMN, axis=1)
             
             train_encode, test_encode = self.encode_categorical_variables(base=base_df, train_df=en_train_df, test_df=en_test_df,file_path=self.data_transformation_config.transform_object_path)
-             
+            # logging.info(f"{test_encode.iloc[:5,]}")
 
             train_df_encoded = pd.concat([train_df[ENCODE_EXCLUDE_COLUMN], train_encode], axis=1)
             test_df_encoded = pd.concat([test_df[ENCODE_EXCLUDE_COLUMN], test_encode], axis=1)
+            
 
             # saving into numpy array
             logging.info(f"Saving the transformed dataframe into numpy array")

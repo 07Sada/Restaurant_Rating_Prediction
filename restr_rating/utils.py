@@ -108,3 +108,12 @@ def save_encoding_to_dill(unique_values: dict, encoded_base: pd.DataFrame, file_
             dill.dump({'unique_values': unique_values, 'encoded_base': encoded_base}, file)
     except Exception as e:
         raise RatingException(e, sys)
+
+def load_object(file_path: str, ) -> object:
+    try:
+        if not os.path.exists(file_path):
+            raise Exception(f"The file: {file_path} is not exists")
+        with open(file_path, "rb") as file_obj:
+            return dill.load(file_obj)
+    except Exception as e:
+        raise RatingException (e, sys)
